@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
 import { GoogleGenAI } from '@google/genai';
 import { Eye, EyeOff, AlertTriangle } from 'lucide-react';
+import { SplashScreen } from '../components/SplashScreen';
 
 export function Login() {
   const login = useStore((state) => state.login);
@@ -17,6 +18,7 @@ export function Login() {
   const [loadingQuote, setLoadingQuote] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [isFlashing, setIsFlashing] = useState(false);
+  const [showSplash, setShowSplash] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -110,7 +112,7 @@ export function Login() {
     }());
 
     setTimeout(() => {
-      navigate('/');
+      setShowSplash(true);
     }, 300);
   };
 
@@ -226,6 +228,8 @@ export function Login() {
           </div>
         </form>
       </motion.div>
+      
+      {showSplash && <SplashScreen onComplete={() => navigate('/')} />}
     </div>
   );
 }
