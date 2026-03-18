@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
 import { format, startOfWeek, endOfWeek, isWithinInterval, parseISO, isSameDay } from 'date-fns';
+import { supabase } from './lib/supabase';
 
 export type Goal = 'hypertrophy' | 'strength' | 'fat_loss' | 'other';
 export type ExperienceLevel = 'beginner' | 'intermediate' | 'advanced';
@@ -71,6 +72,7 @@ export interface WorkoutLog {
 
 interface AppState {
   user: UserProfile | null;
+  isInitialized: boolean;
   users: UserProfile[];
   weightLogs: WeightLog[];
   exercises: Exercise[];
@@ -82,6 +84,7 @@ interface AppState {
   login: (user: UserProfile) => void;
   register: (user: UserProfile) => void;
   logout: () => void;
+  loadUserData: (userId: string, email: string) => Promise<void>;
   updateUser: (user: Partial<UserProfile>) => void;
   addWeightLog: (weight: number, date?: string) => void;
   addExercise: (exercise: Omit<Exercise, 'id'>) => string;
@@ -127,8 +130,9 @@ const INITIAL_EXERCISES: Exercise[] = [
 
 export const useStore = create<AppState>()(
   persist(
-    (set, get) => ({
+    (set, _get) => ({
       user: null,
+      isInitialized: false,
       users: [],
       weightLogs: [],
       exercises: INITIAL_EXERCISES,
@@ -138,7 +142,32 @@ export const useStore = create<AppState>()(
 
       login: (user) => set({ user }),
       register: (user) => set((state) => ({ users: [...state.users, user], user })),
-      logout: () => set({ user: null, weightLogs: [], routines: [], workoutLogs: [], setLogs: [] }),
+      logout: () => set({ user: null, isInitialized: true, weightLogs: [], routines: [], workoutLogs: [], setLogs: [] }),
+
+      loadUserData: async (userId, email) => {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
+
+        if (profile) {
+          set({
+            user: {
+              name: profile.name,
+              email: profile.email ?? email,
+              weight: profile.weight ?? 0,
+              height: profile.height ?? 0,
+              goal: profile.goal ?? 'hypertrophy',
+              level: profile.level ?? 'intermediate',
+              avatarUrl: profile.avatar_url,
+            },
+            isInitialized: true,
+          });
+        } else {
+          set({ isInitialized: true });
+        }
+      },
       
       updateUser: (updates) => set((state) => ({ 
         user: state.user ? { ...state.user, ...updates } : null 

@@ -1,14 +1,12 @@
-import { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useStore } from '../store';
 import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
 import { GoogleGenAI } from '@google/genai';
 import { Eye, EyeOff, AlertTriangle } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export function Login() {
-  const login = useStore((state) => state.login);
-  const users = useStore((state) => state.users);
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -60,20 +58,19 @@ export function Login() {
     }));
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
     if (!email || !password) return;
 
-    const user = users.find(u => u.email === email && u.password === password);
+    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
 
-    if (!user) {
-      setError('Usuario no encontrado. ¿Querés crear una cuenta?');
+    if (authError) {
+      setError('Email o contraseña incorrectos.');
       return;
     }
 
-    login(user);
     setIsFlashing(true);
 
     // Dumbbell rain animation

@@ -1,12 +1,12 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useStore, Goal, ExperienceLevel } from '../store';
+import { Goal, ExperienceLevel } from '../store';
 import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
 import { Eye, EyeOff, AlertTriangle } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export function Register() {
-  const register = useStore((state) => state.register);
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -32,7 +32,7 @@ export function Register() {
     }));
   }, []);
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -51,15 +51,28 @@ export function Register() {
       return;
     }
 
-    register({
-      name,
+    const { data, error: authError } = await supabase.auth.signUp({
       email,
       password,
-      weight: parseFloat(weight),
-      height: parseFloat(height),
-      goal,
-      level,
+      options: { data: { name } },
     });
+
+    if (authError) {
+      setError(authError.message);
+      return;
+    }
+
+    // Actualizar perfil con datos adicionales
+    if (data.user) {
+      await supabase.from('profiles').update({
+        name,
+        weight: parseFloat(weight),
+        height: parseFloat(height),
+        goal,
+        level,
+      }).eq('id', data.user.id);
+    }
+
     setIsFlashing(true);
 
     // Dumbbell rain animation

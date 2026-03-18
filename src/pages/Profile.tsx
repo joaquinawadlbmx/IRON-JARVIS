@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useStore, Goal, ExperienceLevel } from '../store';
 import { LogOut, Save, User, Activity } from 'lucide-react';
 import {
