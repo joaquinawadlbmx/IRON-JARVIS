@@ -274,7 +274,11 @@ export function Workout() {
           <h1 className="text-lg font-bold text-white tracking-tight">
             {editingRoutine.id ? 'Editar Rutina' : 'Nueva Rutina'}
           </h1>
-          <button onClick={handleSaveRoutine} className="text-violet-500 font-bold uppercase text-sm tracking-widest">
+          <button
+            onClick={handleSaveRoutine}
+            disabled={!editingRoutine.name?.trim()}
+            className="text-violet-500 font-bold uppercase text-sm tracking-widest disabled:opacity-40 disabled:cursor-not-allowed"
+          >
             Guardar
           </button>
         </header>

@@ -17,7 +17,7 @@ const DAYS_OF_WEEK = [
 ];
 
 export function AIGenerator() {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
   const [goal, setGoal] = useState('');
   const [daysPerWeek, setDaysPerWeek] = useState<number | null>(null);
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
@@ -130,7 +130,7 @@ Respondé ÚNICAMENTE con un objeto JSON válido, sin texto adicional, sin expli
 Cada día debe tener entre 4 y 7 ejercicios. Usá nombres de ejercicios en español. Las categorías válidas son: push, pull, legs, isolation. El RIR debe estar entre 1 y 3.`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.1-pro-preview',
+        model: 'gemini-2.5-flash',
         contents: prompt,
       });
 
