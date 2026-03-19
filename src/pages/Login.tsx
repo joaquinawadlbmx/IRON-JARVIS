@@ -5,6 +5,7 @@ import { GoogleGenAI } from '@google/genai';
 import { Eye, EyeOff, AlertTriangle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useStore } from '../store';
+import { SplashScreen } from '../components/SplashScreen';
 
 export function Login() {
   const navigate = useNavigate();
@@ -14,10 +15,11 @@ export function Login() {
   const [quote, setQuote] = useState('');
   const [loadingQuote, setLoadingQuote] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [showSplash, setShowSplash] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
-    
+
     async function fetchQuote() {
       try {
         const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
@@ -25,7 +27,7 @@ export function Login() {
           model: 'gemini-2.5-flash',
           contents: 'Genera UNA sola frase motivacional corta (máximo 12 palabras) para alguien que está a punto de ir a entrenar al gimnasio. La frase debe ser poderosa, directa y en español. No uses comillas. No uses emojis. Solo la frase.',
         });
-        
+
         if (isMounted) {
           setQuote(response.text || 'El único mal entrenamiento es el que no hiciste.');
           setLoadingQuote(false);
@@ -59,10 +61,10 @@ export function Login() {
       return;
     }
 
-    // Resetear isInitialized para que ProtectedRoute espere a que
-    // loadUserData termine antes de renderizar, evitando la redirección prematura.
+    // Resetear isInitialized para que ProtectedRoute espere a loadUserData
+    // antes de renderizar, evitando la redirección prematura (doble login).
     useStore.setState({ isInitialized: false });
-    navigate('/');
+    setShowSplash(true);
   };
 
   return (
@@ -138,7 +140,7 @@ export function Login() {
           >
             Iniciar Protocolo
           </button>
-          
+
           <div className="text-center mt-4">
             <Link to="/register" className="text-zinc-400 hover:text-white text-sm transition-colors">
               ¿Primera vez? Crear cuenta
@@ -146,6 +148,8 @@ export function Login() {
           </div>
         </form>
       </motion.div>
+
+      {showSplash && <SplashScreen onComplete={() => navigate('/')} />}
     </div>
   );
 }
